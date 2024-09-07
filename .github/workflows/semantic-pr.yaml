@@ -26,62 +26,78 @@ jobs:
       pull-requests: read
       statuses: write # needed for setting the status of the PR
     steps:
-    - name: Set status pending
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-          -f "state=pending" -f "description=PR semantics checks are running" \
-          -f "context=${{ env.CHECK_NAME }}"
+      - name: Set status pending
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=pending" -f "description=PR semantics checks are running" \
+            -f "context=${{ env.CHECK_NAME }}"
 
-    - uses: amannn/action-semantic-pull-request@v5
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        requireScope: false
-        subjectPattern: ^(?![A-Z]).+$ # don't start with an uppercase character.
-        subjectPatternError: |
-          The subject "{subject}" found in the pull request title "{title}"
-          didn't match the configured pattern. Please ensure that the subject
-          doesn't start with an uppercase character.
-        types: |
-          fix
-          feat
-          revert
-          docs
-          style
-          refactor
-          test
-          build
-          ci
-          deps
-        ignoreLabels: |
-          bot
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$ # don't start with an uppercase character.
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            didn't match the configured pattern. Please ensure that the subject
+            doesn't start with an uppercase character.
+          types: |
+            fix
+            feat
+            revert
+            docs
+            style
+            refactor
+            test
+            build
+            ci
+            deps
+            chore
+          ignoreLabels: |
+            bot
 
-    - uses: mheap/github-action-required-labels@v5
-      name: Check forbidden labels
-      with:
-        mode: exactly
-        count: 0
-        labels: "do-not-merge, WIP, do not merge"
+      - uses: mheap/github-action-required-labels@v5
+        name: Check forbidden labels
+        with:
+          mode: exactly
+          count: 0
+          labels: |
+            do-not-merge
+            WIP
+            do not merge
+          add_comment: true
 
-    - name: Set status success
-      if: ${{ success() || inputs.IgnoreErrors == true }}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-          -f "state=success" -f "description=PR semantic checks were successful" \
-          -f "context=${{ env.CHECK_NAME }}"
+      - uses: mheap/github-action-required-labels@v5
+        name: Check required label
+        with:
+          add_comment: true
+          mode: exactly
+          count: 1
+          labels: |
+            major
+            minor
+            patch
 
-    - name: Set status failure
-      if: ${{ failure() && inputs.IgnoreErrors == false }}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-          -f "state=failure" -f "description=PR semantic checks failed validations!" \
-          -f "context=${{ env.CHECK_NAME }}"
+      - name: Set status success
+        if: ${{ success() || inputs.IgnoreErrors == true }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=success" -f "description=PR semantic checks were successful" \
+            -f "context=${{ env.CHECK_NAME }}"
+
+      - name: Set status failure
+        if: ${{ failure() && inputs.IgnoreErrors == false }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=failure" -f "description=PR semantic checks failed validations!" \
+            -f "context=${{ env.CHECK_NAME }}"
