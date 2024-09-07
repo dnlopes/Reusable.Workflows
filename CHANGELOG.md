@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0](https://github.com/dnlopes/Reusable.Workflows/compare/v1.12.4...v1.13.0) (2024-09-07)
+
+
+### Features
+
+* add required labels check ([9eb45fa](https://github.com/dnlopes/Reusable.Workflows/commit/9eb45fad81347bf3949f296392e05ec237d21f4a))
+
 ## [1.12.4](https://github.com/dnlopes/github-workflows/compare/v1.12.3...v1.12.4) (2024-07-20)
 
 
