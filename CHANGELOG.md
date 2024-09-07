@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.2](https://github.com/dnlopes/Reusable.Workflows/compare/v1.13.1...v1.13.2) (2024-09-07)
+
+
+### Bug Fixes
+
+* remove comments ([5119085](https://github.com/dnlopes/Reusable.Workflows/commit/51190854bd31a5355eed690a1f7c7d7a09433280))
+
 ## [1.13.1](https://github.com/dnlopes/Reusable.Workflows/compare/v1.13.0...v1.13.1) (2024-09-07)
 
 
