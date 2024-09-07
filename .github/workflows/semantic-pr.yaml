@@ -23,7 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write # needed to add PR comments
       statuses: write # needed for setting the status of the PR
     steps:
       - name: Set status pending
@@ -69,12 +68,10 @@ jobs:
             do-not-merge
             WIP
             do not merge
-          add_comment: true
 
       - uses: mheap/github-action-required-labels@v5
         name: Check required label
         with:
-          add_comment: true
           mode: exactly
           count: 1
           labels: |
