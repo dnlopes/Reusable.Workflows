@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write # needed to add PR comments
       statuses: write # needed for setting the status of the PR
     steps:
       - name: Set status pending
