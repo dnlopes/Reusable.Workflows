@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.1](https://github.com/dnlopes/Reusable.Workflows/compare/v1.13.0...v1.13.1) (2024-09-07)
+
+
+### Bug Fixes
+
+* add missing permission ([044d4fa](https://github.com/dnlopes/Reusable.Workflows/commit/044d4faed5ad58bb4bd8ca1481b74cc6b41e2936))
+
 ## [1.13.0](https://github.com/dnlopes/Reusable.Workflows/compare/v1.12.4...v1.13.0) (2024-09-07)
 
 
