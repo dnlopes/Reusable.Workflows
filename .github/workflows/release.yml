@@ -1,0 +1,40 @@
+name: Release
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release_drafter:
+    name: Create
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter@v6
+        id: draft_release
+        with:
+          config-name: release-drafter.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release edit "${{ steps.draft_release.outputs.tag_name }}" --draft=false --latest
+
+      - name: Update major/minor tags
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          version="${{ steps.draft_release.outputs.tag_name }}"
+          majorVersion=$(echo $version | cut -d '.' -f 1)
+          minorVersion=$(echo $version | cut -d '.' -f 2)
+          git tag -d "$majorVersion"
+          git tag -d "$majorVersion.$minorVersion"
+          git push origin "$majorVersion"
+          git push origin "$majorVersion.$minorVersion"
