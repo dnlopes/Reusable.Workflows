@@ -37,7 +37,7 @@ jobs:
           version="${{ steps.draft_release.outputs.tag_name }}"
           majorVersion=$(echo $version | cut -d '.' -f 1)
           minorVersion=$(echo $version | cut -d '.' -f 2)
-          git tag -d "$majorVersion"
-          git tag -d "$majorVersion.$minorVersion"
-          git push origin "$majorVersion"
-          git push origin "$majorVersion.$minorVersion"
+          git tag -f "$majorVersion"
+          git tag -f "$majorVersion.$minorVersion"
+          git push origin -f "$majorVersion"
+          git push origin -f "$majorVersion.$minorVersion"
