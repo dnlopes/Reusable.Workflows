@@ -19,6 +19,9 @@ jobs:
       pull-requests: read
       statuses: write
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set status pending
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
