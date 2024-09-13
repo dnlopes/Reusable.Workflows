@@ -20,7 +20,7 @@ env:
   CHECK_NAME: Python checks
 
 jobs:
-  golang:
+  python:
     name: Build and test
     runs-on: ubuntu-latest
     permissions:
@@ -42,7 +42,7 @@ jobs:
         run: |
           gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-            -f "state=pending" -f "description=Golang checks are running" \
+            -f "state=pending" -f "description=Python checks are running" \
             -f "context=${{ env.CHECK_NAME }}"
 
       - name: Checkout reusable-workflows repository
@@ -63,7 +63,7 @@ jobs:
         run: |
           gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-            -f "state=success" -f "description=Golang checks were successful" \
+            -f "state=success" -f "description=Python checks were successful" \
             -f "context=${{ env.CHECK_NAME }}"
 
       - name: Set status failure
@@ -73,5 +73,5 @@ jobs:
         run: |
           gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-            -f "state=failure" -f "description=Golang checks failed validations!" \
+            -f "state=failure" -f "description=Python checks failed validations!" \
             -f "context=${{ env.CHECK_NAME }}"
