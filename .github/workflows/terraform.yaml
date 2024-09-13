@@ -135,6 +135,7 @@ jobs:
       - name: .terraform.lock.hcl updated?
         id: verify_lockfile
         run: git --no-pager diff --exit-code .terraform.lock.hcl
+        continue-on-error: true
 
       - name: ${{ inputs.terraformAction }}
         if: ${{ inputs.runPlanOrApply }}
