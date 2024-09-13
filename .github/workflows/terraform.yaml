@@ -55,10 +55,6 @@ on:
         default: false
         description: whether or not to ignore errors
 
-concurrency:
-  group: terraform-${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}-${{ inputs.terraformWorkspace }}
-  cancel-in-progress: true
-
 jobs:
   terraform:
     name: Run (${{ inputs.terraformAction }})

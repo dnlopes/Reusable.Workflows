@@ -25,10 +25,6 @@ on:
         default: false
         description: whether or not to ignore errors
 
-concurrency:
-  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}-golang-checks
-  cancel-in-progress: true
-
 env:
   CHECK_NAME: Golang checks
 
@@ -46,70 +42,70 @@ jobs:
         working-directory: ${{ inputs.golangProjectDir }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set status pending
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-          -f "state=pending" -f "description=Golang checks are running" \
-          -f "context=${{ env.CHECK_NAME }}"
+      - name: Set status pending
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=pending" -f "description=Golang checks are running" \
+            -f "context=${{ env.CHECK_NAME }}"
 
-    - name: Checkout reusable-workflows repository
-      uses: actions/checkout@v4
-      with:
-        repository: dnlopes/github-workflows
-        path: actions
+      - name: Checkout reusable-workflows repository
+        uses: actions/checkout@v4
+        with:
+          repository: dnlopes/github-workflows
+          path: actions
 
-    - name: Install tools
-      uses: ./actions/.github/actions/install-common-tools
-      with:
-        goVersion: ${{ inputs.goVersion }}
+      - name: Install tools
+        uses: ./actions/.github/actions/install-common-tools
+        with:
+          goVersion: ${{ inputs.goVersion }}
 
-    - name: Dependencies
-      run: go get .
+      - name: Dependencies
+        run: go get .
 
-    - name: Build
-      run: go build -o main ./...
+      - name: Build
+        run: go build -o main ./...
 
-    - name: Test
-      run: go test -json > TestResults-${{ inputs.goVersion }}.json
+      - name: Test
+        run: go test -json > TestResults-${{ inputs.goVersion }}.json
 
-    - name: Golangci-lint
-      uses: golangci/golangci-lint-action@v6
-      continue-on-error: true
-      with:
-        version: latest
-        working-directory: ${{ inputs.golangProjectDir }}
+      - name: Golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        continue-on-error: true
+        with:
+          version: latest
+          working-directory: ${{ inputs.golangProjectDir }}
 
-    - name: Upload Go test results
-      if: ${{ inputs.uploadGoArtifacts }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: Go-results-${{ inputs.goVersion }}
-        path: TestResults-${{ inputs.goVersion }}.json
-        retention-days: 1
-        overwrite: true
+      - name: Upload Go test results
+        if: ${{ inputs.uploadGoArtifacts }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Go-results-${{ inputs.goVersion }}
+          path: TestResults-${{ inputs.goVersion }}.json
+          retention-days: 1
+          overwrite: true
 
-    - name: Set status success
-      if: ${{ success() || inputs.IgnoreErrors == true }}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-          -f "state=success" -f "description=Golang checks were successful" \
-          -f "context=${{ env.CHECK_NAME }}"
+      - name: Set status success
+        if: ${{ success() || inputs.IgnoreErrors == true }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=success" -f "description=Golang checks were successful" \
+            -f "context=${{ env.CHECK_NAME }}"
 
-    - name: Set status failure
-      if: ${{ failure() && inputs.IgnoreErrors == false }}
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
-          /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-          -f "state=failure" -f "description=Golang checks failed validations!" \
-          -f "context=${{ env.CHECK_NAME }}"
+      - name: Set status failure
+        if: ${{ failure() && inputs.IgnoreErrors == false }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=failure" -f "description=Golang checks failed validations!" \
+            -f "context=${{ env.CHECK_NAME }}"

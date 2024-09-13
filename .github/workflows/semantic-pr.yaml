@@ -11,7 +11,7 @@ on:
     types: [opened, reopened, edited, labeled, unlabeled, synchronize]
 
 concurrency:
-  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}-pr-semantic
+  group: ${{ github.ref }}-pr-semantic
   cancel-in-progress: true
 
 env:
