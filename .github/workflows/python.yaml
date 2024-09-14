@@ -1,11 +1,6 @@
 on:
   workflow_call:
     inputs:
-      projectDirectory:
-        required: false
-        type: string
-        default: src
-        description: path of the Python project, relative to the root of the repository
       pythonVersion:
         required: false
         type: string
@@ -18,12 +13,12 @@ on:
       setupCommand:
         required: false
         type: string
-        default: make loca-dev
+        default: ""
         description: a CLI command to setup the environment prior to running unit-tests
       testsCommand:
         required: false
         type: string
-        default: make unit-tests
+        default: ""
         description: the CLI command to run the unit-tests
     secrets:
       CODECOV_TOKEN:
@@ -71,6 +66,7 @@ jobs:
         run: ${{ inputs.setupCommand }}
 
       - name: Run tests
+        if: ${{ inputs.testsCommand != "" }}
         run: ${{ inputs.testsCommand }}
 
       - uses: codecov/codecov-action@v4
