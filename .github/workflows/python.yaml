@@ -41,6 +41,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set status pending
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -86,7 +87,7 @@ jobs:
           CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN }}"
 
       - name: Set status success
-        if: ${{ success() || inputs.IgnoreErrors == true }}
+        if: ${{ (success() || inputs.IgnoreErrors == true) && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -96,7 +97,7 @@ jobs:
             -f "context=${{ env.CHECK_NAME }}"
 
       - name: Set status failure
-        if: ${{ failure() && inputs.IgnoreErrors == false }}
+        if: ${{ (failure() && inputs.IgnoreErrors == false) && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
