@@ -21,7 +21,7 @@ env:
 
 jobs:
   python:
-    name: Build and test
+    name: Unit tests
     runs-on: ubuntu-latest
     permissions:
       contents: read # Required: allow read access to the content for analysis.
