@@ -69,10 +69,19 @@ jobs:
         run: ${{ inputs.testsCommand }}
 
       - uses: codecov/codecov-action@v4
-        name: Upload coverare report
+        name: Upload coverage to Codecov
         with:
           fail_ci_if_error: true
           verbose: true
+        env:
+          CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN }}"
+
+      - uses: codecov/test-results-action@v1
+        name: Upload test results to Codecov
+        with:
+          fail_ci_if_error: true
+          verbose: true
+          flags: python${{ inputs.pythonVersion }}
         env:
           CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN }}"
 
