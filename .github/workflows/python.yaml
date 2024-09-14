@@ -1,0 +1,77 @@
+on:
+  workflow_call:
+    inputs:
+      projectDirectory:
+        required: false
+        type: string
+        default: .
+        description: path of the Python project, relative to the root of the repository
+      pythonVersion:
+        required: false
+        type: string
+        default: "3.12"
+      ignoreErrors:
+        required: false
+        type: boolean
+        default: false
+        description: whether or not to ignore errors
+
+env:
+  CHECK_NAME: Python checks
+
+jobs:
+  python:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Required: allow read access to the content for analysis.
+      pull-requests: read # Optional: allow read access to pull request. Use with `only-new-issues` option.
+      checks: write # Optional: allow write access to checks to allow the action to annotate code in the PR.
+      statuses: write # needed for setting the status of the PR
+    defaults:
+      run:
+        working-directory: ${{ inputs.projectDirectory }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set status pending
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=pending" -f "description=Python checks are running" \
+            -f "context=${{ env.CHECK_NAME }}"
+
+      - name: Checkout reusable-workflows repository
+        uses: actions/checkout@v4
+        with:
+          repository: dnlopes/github-workflows
+          path: actions
+
+      - name: Install tools
+        uses: ./actions/.github/actions/install-common-tools
+        with:
+          pythonVersion: ${{ inputs.pythonVersion }}
+
+      - name: Set status success
+        if: ${{ success() || inputs.IgnoreErrors == true }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=success" -f "description=Python checks were successful" \
+            -f "context=${{ env.CHECK_NAME }}"
+
+      - name: Set status failure
+        if: ${{ failure() && inputs.IgnoreErrors == false }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=failure" -f "description=Python checks failed validations!" \
+            -f "context=${{ env.CHECK_NAME }}"
