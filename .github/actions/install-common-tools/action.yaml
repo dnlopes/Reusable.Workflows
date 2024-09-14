@@ -30,6 +30,10 @@ runs:
     - name: Install Poetry
       uses: abatilo/actions-poetry@v2
 
+    - name: Install pre-commit
+      shell: bash
+      run: pip install pre-commit
+
     - name: Setup Poetry local environment
       shell: bash
       run: |
