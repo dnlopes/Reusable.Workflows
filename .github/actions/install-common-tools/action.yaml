@@ -22,29 +22,42 @@ inputs:
 runs:
   using: "composite"
   steps:
-  - name: Install Python
-    uses: actions/setup-python@v5
-    with:
-      python-version: ${{ inputs.pythonVersion }}
+    - name: Install Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.pythonVersion }}
 
-  - name: Install OpenTofu
-    uses: opentofu/setup-opentofu@v1
-    with:
-      tofu_version: ${{ inputs.openTofuVersion }}
+    - name: Install Poetry
+      uses: abatilo/actions-poetry@v2
 
-  - name: Install Terraform
-    uses: hashicorp/setup-terraform@v3
-    with:
-      terraform_version: ${{ inputs.terraformVersion }}
+    - name: Install pre-commit
+      shell: bash
+      run: pip install pre-commit
 
-  - name: Install TFLint
-    uses: terraform-linters/setup-tflint@v4
+    - name: Setup Poetry local environment
+      shell: bash
+      run: |
+        poetry config virtualenvs.create true --local
+        poetry config virtualenvs.in-project true --local
 
-  - name: Install Trivy
-    shell: bash
-    run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.52.2
+    - name: Install OpenTofu
+      uses: opentofu/setup-opentofu@v1
+      with:
+        tofu_version: ${{ inputs.openTofuVersion }}
 
-  - name: Setup Go ${{ matrix.go-version }}
-    uses: actions/setup-go@v5
-    with:
-      go-version: ${{ inputs.goVersion }}
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ inputs.terraformVersion }}
+
+    - name: Install TFLint
+      uses: terraform-linters/setup-tflint@v4
+
+    - name: Install Trivy
+      shell: bash
+      run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.52.2
+
+    - name: Setup Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ inputs.goVersion }}

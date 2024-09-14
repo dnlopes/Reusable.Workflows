@@ -1,11 +1,6 @@
 on:
   workflow_call:
     inputs:
-      projectDirectory:
-        required: false
-        type: string
-        default: .
-        description: path of the Python project, relative to the root of the repository
       pythonVersion:
         required: false
         type: string
@@ -15,7 +10,19 @@ on:
         type: boolean
         default: false
         description: whether or not to ignore errors
-
+      setupCommand:
+        required: false
+        type: string
+        default: ""
+        description: a CLI command to setup the environment prior to running unit-tests
+      testsCommand:
+        required: false
+        type: string
+        default: ""
+        description: the CLI command to run the unit-tests
+    secrets:
+      CODECOV_TOKEN:
+        required: true
 env:
   CHECK_NAME: Python checks
 
@@ -28,9 +35,6 @@ jobs:
       pull-requests: read # Optional: allow read access to pull request. Use with `only-new-issues` option.
       checks: write # Optional: allow write access to checks to allow the action to annotate code in the PR.
       statuses: write # needed for setting the status of the PR
-    defaults:
-      run:
-        working-directory: ${{ inputs.projectDirectory }}
 
     steps:
       - name: Checkout code
@@ -55,6 +59,22 @@ jobs:
         uses: ./actions/.github/actions/install-common-tools
         with:
           pythonVersion: ${{ inputs.pythonVersion }}
+
+      - name: Run setup command
+        if: ${{ inputs.setupCommand != '' }}
+        run: ${{ inputs.setupCommand }}
+
+      - name: Run tests
+        if: ${{ inputs.testsCommand != '' }}
+        run: ${{ inputs.testsCommand }}
+
+      - uses: codecov/codecov-action@v4
+        name: Upload coverare report
+        with:
+          fail_ci_if_error: true
+          verbose: true
+        env:
+          CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN }}"
 
       - name: Set status success
         if: ${{ success() || inputs.IgnoreErrors == true }}
