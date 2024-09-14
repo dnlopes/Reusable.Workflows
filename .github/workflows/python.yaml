@@ -62,11 +62,11 @@ jobs:
           pythonVersion: ${{ inputs.pythonVersion }}
 
       - name: Run setup command
-        if: ${{ inputs.setupCommand != "" }}
+        if: ${{ inputs.setupCommand != '' }}
         run: ${{ inputs.setupCommand }}
 
       - name: Run tests
-        if: ${{ inputs.testsCommand != "" }}
+        if: ${{ inputs.testsCommand != '' }}
         run: ${{ inputs.testsCommand }}
 
       - uses: codecov/codecov-action@v4
