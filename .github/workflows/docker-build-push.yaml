@@ -30,6 +30,8 @@ jobs:
   docker:
     name: Docker Build
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # needed for OIDC login in AWS
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
