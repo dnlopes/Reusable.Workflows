@@ -51,6 +51,9 @@ jobs:
 
       - name: Docker build/push
         run: |
+          echo "ola"
+          echo "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          echo "adeus"
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f ${{ inputs.dockerFilePath }} .
           if [ ${{ inputs.pushToECR }} == true ]; then
             docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
