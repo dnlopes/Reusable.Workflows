@@ -5,12 +5,12 @@ on:
         required: true
         type: string
       awsRoleArn:
-        required: true
+        required: false
         description: the IAM role ARN to be assumed when interacting with AWS ECR
         type: string
         default: "arn:aws:iam::726291298705:role/GitHub"
       awsRegion:
-        required: true
+        required: false
         description: the AWS region to use
         type: string
         default: eu-west-1
@@ -23,7 +23,7 @@ on:
         type: string
         description: name of the image tag
       pushToECR:
-        required: true
+        required: false
         type: boolean
         default: false
 
