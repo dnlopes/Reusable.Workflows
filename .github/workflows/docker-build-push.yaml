@@ -8,6 +8,7 @@ on:
         required: true
         description: the IAM role ARN to be assumed when interacting with AWS ECR
         type: string
+        default: "arn:aws:iam::726291298705:role/GitHub"
       awsRegion:
         required: true
         description: the AWS region to use
