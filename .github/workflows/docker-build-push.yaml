@@ -1,0 +1,63 @@
+on:
+  workflow_call:
+    inputs:
+      dockerFilePath:
+        required: true
+        type: string
+      awsRoleArn:
+        required: true
+        description: the IAM role ARN to be assumed when interacting with AWS ECR
+        type: string
+        default: "arn:aws:iam::726291298705:role/GitHub"
+      awsRegion:
+        required: true
+        description: the AWS region to use
+        type: string
+        default: eu-west-1
+      repository:
+        required: true
+        type: string
+        description: name of the ECR repository
+      tag:
+        required: true
+        type: string
+        description: name of the image tag
+      pushToECR:
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # needed for OIDC login in AWS
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ inputs.awsRoleArn }}
+          aws-region: ${{ inputs.awsRegion }}
+          role-session-name: docker-builder
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Docker build/push
+        run: |
+          docker build -t $REPOSITORY:$IMAGE_TAG -f ${{ inputs.dockerFilePath }} .
+          if [ ${{ inputs.pushToECR }} == true ]; then
+            docker tag $REPOSITORY:$IMAGE_TAG $REGISTRY/$REPOSITORY:$IMAGE_TAG
+            docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          fi
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ inputs.repository }}
+          IMAGE_TAG: ${{ inputs.tag }}
