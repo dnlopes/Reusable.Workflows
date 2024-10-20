@@ -23,12 +23,12 @@ runs:
   using: "composite"
   steps:
     - name: Install Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5
       with:
         python-version: ${{ inputs.pythonVersion }}
 
     - name: Install Poetry
-      uses: abatilo/actions-poetry@v2
+      uses: abatilo/actions-poetry@c31426b23a8080795905ec73c9e458a2447cb2f2 # v2
 
     - name: Install pre-commit
       shell: bash
@@ -41,23 +41,23 @@ runs:
         poetry config virtualenvs.in-project true --local
 
     - name: Install OpenTofu
-      uses: opentofu/setup-opentofu@v1
+      uses: opentofu/setup-opentofu@12f4debbf681675350b6cd1f0ff8ecfbda62027b # v1
       with:
         tofu_version: ${{ inputs.openTofuVersion }}
 
     - name: Install Terraform
-      uses: hashicorp/setup-terraform@v3
+      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
       with:
         terraform_version: ${{ inputs.terraformVersion }}
 
     - name: Install TFLint
-      uses: terraform-linters/setup-tflint@v4
+      uses: terraform-linters/setup-tflint@19a52fbac37dacb22a09518e4ef6ee234f2d4987 # v4
 
     - name: Install Trivy
       shell: bash
       run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.52.2
 
     - name: Setup Go ${{ matrix.go-version }}
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5
       with:
         go-version: ${{ inputs.goVersion }}

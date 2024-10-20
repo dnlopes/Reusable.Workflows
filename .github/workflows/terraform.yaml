@@ -79,7 +79,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4
 
       - name: Set pending status
         if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
@@ -92,7 +92,7 @@ jobs:
             -f "context=${{ env.CHECK_NAME }}"
 
       - name: Checkout reusable-workflows repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4
         with:
           repository: dnlopes/github-workflows
           path: actions
@@ -109,7 +109,7 @@ jobs:
 
       - name: Configure AWS Credentials
         if: ${{ inputs.runPlanOrApply }}
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
           role-to-assume: ${{ inputs.awsRoleArn }}
           aws-region: eu-west-1
@@ -139,7 +139,7 @@ jobs:
         run: ${{ inputs.binary }} ${{ inputs.terraformAction }}
 
       - name: Comment PR (fmt)
-        uses: GetTerminus/terraform-pr-commenter@v3
+        uses: GetTerminus/terraform-pr-commenter@6a7db92d78d42612358a9cf7b47688eef419cf3c # v3
         if: always() && github.event_name == 'pull_request' && inputs.addPullRequestComments && (steps.fmt.outcome == 'success' || steps.fmt.outcome == 'failure')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -151,7 +151,7 @@ jobs:
           commenter_exitcode: ${{ steps.fmt.outputs.exitcode }}
 
       - name: Comment PR (init)
-        uses: GetTerminus/terraform-pr-commenter@v3
+        uses: GetTerminus/terraform-pr-commenter@6a7db92d78d42612358a9cf7b47688eef419cf3c # v3
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComments && (steps.init.outcome == 'success' || steps.init.outcome == 'failure')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -163,7 +163,7 @@ jobs:
           commenter_exitcode: ${{ steps.init.outputs.exitcode }}
 
       - name: Comment PR (validate)
-        uses: GetTerminus/terraform-pr-commenter@v3
+        uses: GetTerminus/terraform-pr-commenter@6a7db92d78d42612358a9cf7b47688eef419cf3c # v3
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComments && (steps.validate.outcome == 'success' || steps.validate.outcome == 'failure')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -176,7 +176,7 @@ jobs:
 
       - name: Comment PR (outdated lockfile)
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComments && steps.verify_lockfile.outcome == 'failure'
-        uses: thollander/actions-comment-pull-request@v2
+        uses: thollander/actions-comment-pull-request@fabd468d3a1a0b97feee5f6b9e499eab0dd903f6 # v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           mode: recreate
@@ -187,7 +187,7 @@ jobs:
             > terraform.lockfile.hcl is not up to date!
 
       - name: Comment PR (plan)
-        uses: GetTerminus/terraform-pr-commenter@v3
+        uses: GetTerminus/terraform-pr-commenter@6a7db92d78d42612358a9cf7b47688eef419cf3c # v3
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComments && (steps.plan_or_apply.outcome == 'success' || steps.plan_or_apply.outcome == 'failure')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

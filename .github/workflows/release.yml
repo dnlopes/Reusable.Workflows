@@ -13,7 +13,7 @@ jobs:
     name: Create
     runs-on: ubuntu-latest
     steps:
-      - uses: release-drafter/release-drafter@v6
+      - uses: release-drafter/release-drafter@3f0f87098bd6b5c5b9a36d49c41d998ea58f9348 # v6
         id: draft_release
         with:
           config-name: release-drafter.yaml
@@ -27,7 +27,7 @@ jobs:
         run: gh release edit "${{ steps.draft_release.outputs.tag_name }}" --draft=false --latest
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4
 
       - name: Update major/minor tags
         env:
