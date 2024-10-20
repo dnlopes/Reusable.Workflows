@@ -32,7 +32,7 @@ jobs:
             -f "state=pending" -f "description=PR semantics checks are running" \
             -f "context=${{ env.CHECK_NAME }}"
 
-      - uses: amannn/action-semantic-pull-request@v5
+      - uses: amannn/action-semantic-pull-request@0723387faaf9b38adef4775cd42cfd5155ed6017 # v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -57,7 +57,7 @@ jobs:
           ignoreLabels: |
             bot
 
-      - uses: mheap/github-action-required-labels@v5
+      - uses: mheap/github-action-required-labels@d25134c992b943fb6ad00c25ea00eb5988c0a9dd # v5
         name: Check forbidden labels
         with:
           mode: exactly
@@ -67,7 +67,7 @@ jobs:
             WIP
             do not merge
 
-      - uses: mheap/github-action-required-labels@v5
+      - uses: mheap/github-action-required-labels@d25134c992b943fb6ad00c25ea00eb5988c0a9dd # v5
         name: Check required label
         with:
           mode: exactly
