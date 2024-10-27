@@ -6,11 +6,6 @@ on:
         type: string
         default: .
         description: path of the Golang project, relative to the root of the repository
-      uploadGoArtifacts:
-        required: false
-        type: boolean
-        default: true
-        description: whether or not to publish the Golang artifacts (e.g., test results)
       goVersion:
         required: false
         type: string
