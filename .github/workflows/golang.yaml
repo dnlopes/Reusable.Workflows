@@ -15,6 +15,16 @@ on:
         type: boolean
         default: false
         description: whether or not to ignore errors
+      buildCommand:
+        required: false
+        type: string
+        default: "make build"
+        description: a CLI command to build the project
+      testCommand:
+        required: false
+        type: string
+        default: "make unit-tests"
+        description: a CLI command to unit-test the project
     secrets:
       CODECOV_TOKEN:
         required: true
@@ -63,7 +73,7 @@ jobs:
         run: go get .
 
       - name: Build
-        run: go build -o main ./...
+        run: ${{ inputs.buildCommand }}
 
       - name: Test
         run: go test -race -coverprofile=coverage.out -covermode=atomic
