@@ -41,7 +41,7 @@ runs:
         poetry config virtualenvs.in-project true --local
 
     - name: Install OpenTofu
-      uses: opentofu/setup-opentofu@12f4debbf681675350b6cd1f0ff8ecfbda62027b # v1
+      uses: opentofu/setup-opentofu@592200bd4b9bbf4772ace78f887668b1aee8f716 # v1
       with:
         tofu_version: ${{ inputs.openTofuVersion }}
 
