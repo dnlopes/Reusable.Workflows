@@ -178,10 +178,10 @@ jobs:
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComments && steps.verify_lockfile.outcome == 'failure'
         uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           mode: recreate
-          comment_tag: lockfile-up-to-date
-          create_if_not_exists: true
+          comment-tag: lockfile-up-to-date
+          create-if-not-exists: true
           message: |
             > [!CAUTION]  
             > terraform.lockfile.hcl is not up to date!
