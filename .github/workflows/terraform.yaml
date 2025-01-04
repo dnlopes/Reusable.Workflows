@@ -183,7 +183,7 @@ jobs:
           comment-tag: lockfile-up-to-date
           create-if-not-exists: true
           message: |
-            > [!CAUTION]  
+            > [!CAUTION]
             > terraform.lockfile.hcl is not up to date!
 
       - name: Comment PR (plan)
