@@ -3,14 +3,29 @@
   "extends": [
     "config:best-practices",
     ":semanticCommitType(chore)",
+    ":semanticCommitScope(deps)",
     ":automergePr",
     ":automergeRequireAllStatusChecks",
     ":combinePatchMinorReleases",
     ":automergeMinor",
     ":enableVulnerabilityAlertsWithLabel(vulnerability)",
     ":labels(renovate, dependencies)",
-    ":rebaseStalePrs"
+    ":rebaseStalePrs",
+    ":timezone(UTC)"
   ],
+  "schedule": ["before 5am every weekend"],
   "reviewersFromCodeOwners": true,
-  "automergeStrategy": "squash"
+  "automergeStrategy": "squash",
+  "packageRules": [
+    {
+      "groupName": "All Minor Updates",
+      "matchUpdateTypes": ["minor"],
+      "automerge": true
+    },
+    {
+      "groupName": "All Patch Updates",
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    }
+  ]
 }

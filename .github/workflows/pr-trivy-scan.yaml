@@ -1,0 +1,51 @@
+name: Trivy
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  trivy_scan:
+    runs-on: ubuntu-latest
+    name: Scan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # 0.29.0
+        env:
+          TRIVY_LIGHT: "true"
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          ignore-unfixed: true
+          format: "json"
+          output: "trivy-report.json"
+          severity: "CRITICAL,HIGH,MEDIUM,LOW"
+          exit-code: 1
+
+      - name: Build Trivy PR comment
+        if: always()
+        run: |
+          echo "## Trivy report summary" > trivy-comment.md
+          echo "<details>" >> trivy-comment.md
+          echo "<summary>show details</summary>" >> trivy-comment.md
+          echo "" >> trivy-comment.md
+          echo "\`\`\`json" >> trivy-comment.md
+          cat trivy-report.json >> trivy-comment.md
+          echo "\`\`\`" >> trivy-comment.md
+          echo "</details>" >> trivy-comment.md
+          cat trivy-comment.md >> $GITHUB_STEP_SUMMARY
+
+      - uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2
+        name: Add PR comment
+        if: always()
+        with:
+          message-id: trivy-report
+          refresh-message-position: true
+          message-path: |
+            trivy-comment.md

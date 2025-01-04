@@ -1,18 +1,15 @@
 name-template: "Release v$RESOLVED_VERSION 🌈"
 tag-template: "v$RESOLVED_VERSION"
-include-labels:
-  - "major"
-  - "minor"
-  - "patch"
+include-labels: ["major", "minor", "patch"]
 categories:
   - title: "🚀 Features"
-    label: "feature"
+    labels: ["feature", "feat"]
   - title: "🐛 Bug Fixes"
-    label: "fix"
-  - title: "🚧 Maintenance"
-    label: "chore"
+    labels: ["fix", "bug", "bugfix"]
+  - title: "🚧 Maintenance / 💡 Keep the lights on"
+    label: ["chore", "deps", "dependencies", "renovate"]
   - title: "🚨 Breaking Changes"
-    label: "breaking-change"
+    label: ["breaking-change"]
 change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
 version-resolver:
@@ -23,17 +20,6 @@ version-resolver:
   patch:
     labels: ["patch"]
   default: patch
-autolabeler:
-  - label: "minor"
-    title: ["^(feat):.+$"]
-  - label: "patch"
-    title: ["^(fix|chore):.+$"]
-  - label: "feature"
-    title: ["^(feat):.+$"]
-  - label: "fix"
-    title: ["^(fix):.+$"]
-  - label: "chore"
-    title: ["^(chore):.+$"]
 template: |
   ## Changes
 
