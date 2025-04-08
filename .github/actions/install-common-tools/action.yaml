@@ -31,7 +31,7 @@ runs:
       uses: yezz123/setup-uv@4819cd88f8d0991d99e4d10c85da3e4d22528951 # v4
 
     - name: Install Poetry
-      uses: abatilo/actions-poetry@fd0e6716a0de25ef6ade151b8b53190b0376acfd # v3
+      uses: abatilo/actions-poetry@0dd19c9498c3dc8728967849d0d2eae428a8a3d8 # v4
 
     - name: Install pre-commit
       shell: bash
