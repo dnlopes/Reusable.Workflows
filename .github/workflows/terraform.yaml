@@ -139,7 +139,7 @@ jobs:
         run: ${{ inputs.binary }} ${{ inputs.terraformAction }}
 
       - name: Comment PR (fmt)
-        uses: GetTerminus/terraform-pr-commenter@6a7db92d78d42612358a9cf7b47688eef419cf3c # v3
+        uses: GetTerminus/terraform-pr-commenter@93a60116ff139d4e9b92b2b61ddc15ebfbdb89c6 # v3
         if: always() && github.event_name == 'pull_request' && inputs.addPullRequestComments && (steps.fmt.outcome == 'success' || steps.fmt.outcome == 'failure')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -151,7 +151,7 @@ jobs:
           commenter_exitcode: ${{ steps.fmt.outputs.exitcode }}
 
       - name: Comment PR (init)
-        uses: GetTerminus/terraform-pr-commenter@6a7db92d78d42612358a9cf7b47688eef419cf3c # v3
+        uses: GetTerminus/terraform-pr-commenter@93a60116ff139d4e9b92b2b61ddc15ebfbdb89c6 # v3
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComments && (steps.init.outcome == 'success' || steps.init.outcome == 'failure')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -163,7 +163,7 @@ jobs:
           commenter_exitcode: ${{ steps.init.outputs.exitcode }}
 
       - name: Comment PR (validate)
-        uses: GetTerminus/terraform-pr-commenter@6a7db92d78d42612358a9cf7b47688eef419cf3c # v3
+        uses: GetTerminus/terraform-pr-commenter@93a60116ff139d4e9b92b2b61ddc15ebfbdb89c6 # v3
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComments && (steps.validate.outcome == 'success' || steps.validate.outcome == 'failure')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -187,7 +187,7 @@ jobs:
             > terraform.lockfile.hcl is not up to date!
 
       - name: Comment PR (plan)
-        uses: GetTerminus/terraform-pr-commenter@6a7db92d78d42612358a9cf7b47688eef419cf3c # v3
+        uses: GetTerminus/terraform-pr-commenter@93a60116ff139d4e9b92b2b61ddc15ebfbdb89c6 # v3
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComments && (steps.plan_or_apply.outcome == 'success' || steps.plan_or_apply.outcome == 'failure')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
