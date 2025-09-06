@@ -109,7 +109,7 @@ jobs:
 
       - name: Configure AWS Credentials
         if: ${{ inputs.runPlanOrApply }}
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
         with:
           role-to-assume: ${{ inputs.awsRoleArn }}
           aws-region: eu-west-1
