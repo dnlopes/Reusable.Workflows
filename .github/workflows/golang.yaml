@@ -70,7 +70,7 @@ jobs:
           goVersion: ${{ inputs.goVersion }}
 
       - name: Dependencies
-        run: go get .
+        run: go mod download
         working-directory: ${{ inputs.golangProjectDir }}
 
       - name: Build
