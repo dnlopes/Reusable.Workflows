@@ -20,7 +20,7 @@ jobs:
       statuses: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Set status pending
         env:
@@ -32,7 +32,7 @@ jobs:
             -f "context=${{ env.CHECK_NAME }}"
 
       - name: Checkout reusable-workflows repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: dnlopes/github-workflows
           path: actions
