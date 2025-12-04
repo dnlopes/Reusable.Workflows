@@ -6,21 +6,6 @@ on:
         type: string
         default: .
         description: path of the project to scan, relative to the root of the repository
-      severity:
-        required: false
-        type: string
-        default: CRITICAL,HIGH
-        description: comma-separated list of severities to scan for (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)
-      ignoreUnfixed:
-        required: false
-        type: boolean
-        default: true
-        description: ignore vulnerabilities without a fix available
-      exitCode:
-        required: false
-        type: string
-        default: "1"
-        description: exit code when vulnerabilities are found (0 to not fail, 1 to fail)
       trivyVersion:
         required: false
         type: string
@@ -36,11 +21,6 @@ on:
         type: boolean
         default: true
         description: add scan results as a PR comment
-      scanners:
-        required: false
-        type: string
-        default: vuln,secret,misconfig
-        description: comma-separated list of scanners to enable (vuln,secret,misconfig,license)
       trivyIgnoreFile:
         required: false
         type: string
@@ -92,9 +72,6 @@ jobs:
         id: trivy-args
         run: |
           ARGS=""
-          if [ "${{ inputs.ignoreUnfixed }}" == "true" ]; then
-            ARGS="$ARGS --ignore-unfixed"
-          fi
 
           # Only add ignorefile if the file exists
           if [ -n "${{ inputs.trivyIgnoreFile }}" ] && [ -f "${{ inputs.trivyIgnoreFile }}" ]; then
@@ -119,12 +96,8 @@ jobs:
         continue-on-error: true
         run: |
           trivy fs \
-            --severity ${{ inputs.severity }} \
-            --vuln-type library \
-            --scanners ${{ inputs.scanners }} \
             --format table \
             --output trivy-results.txt \
-            --exit-code ${{ inputs.exitCode }} \
             ${{ steps.trivy-args.outputs.args }} \
             ${{ inputs.projectDir }}
 
@@ -133,12 +106,8 @@ jobs:
         continue-on-error: true
         run: |
           trivy fs \
-            --severity ${{ inputs.severity }} \
-            --vuln-type library \
-            --scanners ${{ inputs.scanners }} \
             --format sarif \
             --output trivy-results.sarif \
-            --exit-code 0 \
             ${{ steps.trivy-args.outputs.args }} \
             ${{ inputs.projectDir }}
 
@@ -156,8 +125,6 @@ jobs:
           {
             echo 'body<<EOF'
             echo "## Trivy Security Scan Results"
-            echo ""
-            echo "**Target:** \`${{ inputs.projectDir }}\` | **Severity:** \`${{ inputs.severity }}\` | **Scanners:** \`${{ inputs.scanners }}\`"
             echo ""
             if [ "${{ steps.trivy-table.outcome }}" == "success" ]; then
               echo "> [!NOTE]"
