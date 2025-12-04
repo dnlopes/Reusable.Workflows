@@ -1,26 +1,16 @@
 on:
   workflow_call:
     inputs:
-      scanType:
-        required: false
-        type: string
-        default: fs
-        description: type of scan to perform (fs for filesystem, image for container image)
-      scanTarget:
+      projectDir:
         required: false
         type: string
         default: .
-        description: target to scan (directory path for fs scan, image name for image scan)
+        description: path of the project to scan, relative to the root of the repository
       severity:
         required: false
         type: string
         default: CRITICAL,HIGH
         description: comma-separated list of severities to scan for (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)
-      vulnType:
-        required: false
-        type: string
-        default: os,library
-        description: comma-separated list of vulnerability types to scan for (os,library,secret)
       ignoreUnfixed:
         required: false
         type: boolean
@@ -64,12 +54,12 @@ on:
       ignoreErrors:
         required: false
         type: boolean
-        default: true
+        default: false
         description: whether or not to ignore errors
 
 jobs:
   trivy-scan:
-    name: Trivy Scan (${{ inputs.scanType }})
+    name: Trivy Scan
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -78,8 +68,6 @@ jobs:
       statuses: write # needed for setting the status of the PR
     env:
       CHECK_NAME: Trivy CI
-      TRIVY_FORMAT: table
-      TRIVY_OUTPUT: trivy-results.txt
 
     steps:
       - name: Checkout code
@@ -130,38 +118,36 @@ jobs:
         id: trivy-table
         continue-on-error: true
         run: |
-          trivy ${{ inputs.scanType }} \
+          trivy fs \
             --severity ${{ inputs.severity }} \
-            --vuln-type ${{ inputs.vulnType }} \
+            --vuln-type library \
             --scanners ${{ inputs.scanners }} \
             --format table \
             --output trivy-results.txt \
             --exit-code ${{ inputs.exitCode }} \
             ${{ steps.trivy-args.outputs.args }} \
-            ${{ inputs.scanTarget }}
-
-          echo "exitcode=$?" >> $GITHUB_OUTPUT
+            ${{ inputs.projectDir }}
 
       - name: Run Trivy scan (SARIF output)
         if: inputs.uploadToGitHub
         continue-on-error: true
         run: |
-          trivy ${{ inputs.scanType }} \
+          trivy fs \
             --severity ${{ inputs.severity }} \
-            --vuln-type ${{ inputs.vulnType }} \
+            --vuln-type library \
             --scanners ${{ inputs.scanners }} \
             --format sarif \
             --output trivy-results.sarif \
             --exit-code 0 \
             ${{ steps.trivy-args.outputs.args }} \
-            ${{ inputs.scanTarget }}
+            ${{ inputs.projectDir }}
 
       - name: Upload SARIF to GitHub Security tab
         if: inputs.uploadToGitHub && (success() || failure())
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-results.sarif
-          category: trivy-${{ inputs.scanType }}
+          category: trivy
 
       - name: Generate PR comment body
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComment
@@ -169,17 +155,16 @@ jobs:
         run: |
           {
             echo 'body<<EOF'
-            echo "## 🔍 Trivy Security Scan Results"
+            echo "## Trivy Security Scan Results"
             echo ""
-            echo "**Scan Type:** \`${{ inputs.scanType }}\` | **Target:** \`${{ inputs.scanTarget }}\`"
-            echo "**Severity:** \`${{ inputs.severity }}\` | **Scanners:** \`${{ inputs.scanners }}\`"
+            echo "**Target:** \`${{ inputs.projectDir }}\` | **Severity:** \`${{ inputs.severity }}\` | **Scanners:** \`${{ inputs.scanners }}\`"
             echo ""
             if [ "${{ steps.trivy-table.outcome }}" == "success" ]; then
-              echo "### ✅ No vulnerabilities found!"
-              echo ""
-              echo "The security scan completed successfully with no issues detected."
+              echo "> [!NOTE]"
+              echo "> No vulnerabilities found"
             else
-              echo "### ⚠️ Vulnerabilities detected"
+              echo "> [!WARNING]"
+              echo "> Vulnerabilities detected"
               echo ""
               echo "<details>"
               echo "<summary>Click to expand scan results</summary>"
