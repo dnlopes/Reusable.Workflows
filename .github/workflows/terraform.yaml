@@ -75,7 +75,7 @@ jobs:
       TF_CLI_ARGS_apply: -var-file=${{ inputs.terraformVarsFile }} -auto-approve
       TOFU_WORKSPACE: ${{ inputs.terraformWorkspace }}
       TF_WORKSPACE: ${{ inputs.terraformWorkspace }}
-      CHECK_NAME: Terraform checks
+      CHECK_NAME: Terraform CI
 
     steps:
       - name: Checkout code

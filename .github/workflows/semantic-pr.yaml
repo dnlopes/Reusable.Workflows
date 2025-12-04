@@ -12,11 +12,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CHECK_NAME: Semantic PR
+  CHECK_NAME: Semantic CI
 
 jobs:
   pr_title:
-    name: Checks
+    name: Title
     runs-on: ubuntu-latest
     permissions:
       contents: read

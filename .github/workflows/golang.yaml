@@ -29,11 +29,11 @@ on:
       CODECOV_TOKEN:
         required: true
 env:
-  CHECK_NAME: Golang checks
+  CHECK_NAME: Golang CI
 
 jobs:
   golang:
-    name: Build and test
+    name: Build/test
     runs-on: ubuntu-latest
     permissions:
       contents: read # Required: allow read access to the content for analysis.
@@ -78,13 +78,13 @@ jobs:
         working-directory: ${{ inputs.golangProjectDir }}
 
       - name: Test
-        run: go test -v ./... -race -coverprofile=coverage.out -covermode=atomic
+        run: ${{ inputs.testCommand }}
         working-directory: ${{ inputs.golangProjectDir }}
 
       - uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5
         name: Upload coverage to Codecov
         with:
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           verbose: true
           directory: ${{ inputs.golangProjectDir }}
         env:

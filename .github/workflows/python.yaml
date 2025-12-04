@@ -24,7 +24,7 @@ on:
       CODECOV_TOKEN:
         required: true
 env:
-  CHECK_NAME: Python checks
+  CHECK_NAME: Python CI
 
 jobs:
   python:
@@ -72,7 +72,7 @@ jobs:
       - uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5
         name: Upload coverage to Codecov
         with:
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           verbose: true
         env:
           CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN }}"
@@ -80,7 +80,7 @@ jobs:
       - uses: codecov/test-results-action@47f89e9acb64b76debcd5ea40642d25a4adced9f # v1
         name: Upload test results to Codecov
         with:
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           verbose: true
           flags: python${{ inputs.pythonVersion }}
         env:
