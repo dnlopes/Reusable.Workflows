@@ -39,7 +39,7 @@ on:
 
 jobs:
   trivy-scan:
-    name: Trivy Scan
+    name: Scan
     runs-on: ubuntu-latest
     permissions:
       contents: read
