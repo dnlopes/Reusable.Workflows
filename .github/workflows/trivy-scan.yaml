@@ -1,0 +1,247 @@
+on:
+  workflow_call:
+    inputs:
+      scanType:
+        required: false
+        type: string
+        default: fs
+        description: type of scan to perform (fs for filesystem, image for container image)
+      scanTarget:
+        required: false
+        type: string
+        default: .
+        description: target to scan (directory path for fs scan, image name for image scan)
+      severity:
+        required: false
+        type: string
+        default: CRITICAL,HIGH
+        description: comma-separated list of severities to scan for (UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL)
+      vulnType:
+        required: false
+        type: string
+        default: os,library
+        description: comma-separated list of vulnerability types to scan for (os,library,secret)
+      ignoreUnfixed:
+        required: false
+        type: boolean
+        default: true
+        description: ignore vulnerabilities without a fix available
+      exitCode:
+        required: false
+        type: string
+        default: "1"
+        description: exit code when vulnerabilities are found (0 to not fail, 1 to fail)
+      trivyVersion:
+        required: false
+        type: string
+        default: "0.58.1"
+        description: Trivy version to install
+      uploadToGitHub:
+        required: false
+        type: boolean
+        default: true
+        description: upload scan results (SARIF) to GitHub Security tab
+      addPullRequestComment:
+        required: false
+        type: boolean
+        default: true
+        description: add scan results as a PR comment
+      scanners:
+        required: false
+        type: string
+        default: vuln,secret,misconfig
+        description: comma-separated list of scanners to enable (vuln,secret,misconfig,license)
+      trivyIgnoreFile:
+        required: false
+        type: string
+        default: .trivyignore
+        description: path to .trivyignore file for excluding vulnerabilities (ignored if file does not exist)
+      configFile:
+        required: false
+        type: string
+        default: trivy.yaml
+        description: path to trivy.yaml configuration file (ignored if file does not exist)
+      ignoreErrors:
+        required: false
+        type: boolean
+        default: true
+        description: whether or not to ignore errors
+
+jobs:
+  trivy-scan:
+    name: Trivy Scan (${{ inputs.scanType }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write # needed for uploading SARIF to GitHub Security tab
+      pull-requests: write # needed for PR comments
+      statuses: write # needed for setting the status of the PR
+    env:
+      CHECK_NAME: Trivy CI
+      TRIVY_FORMAT: table
+      TRIVY_OUTPUT: trivy-results.txt
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+
+      - name: Set pending status
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=pending" -f "description=security scan running" \
+            -f "context=${{ env.CHECK_NAME }}"
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v${{ inputs.trivyVersion }}
+          trivy --version
+
+      - name: Build Trivy command arguments
+        id: trivy-args
+        run: |
+          ARGS=""
+          if [ "${{ inputs.ignoreUnfixed }}" == "true" ]; then
+            ARGS="$ARGS --ignore-unfixed"
+          fi
+
+          # Only add ignorefile if the file exists
+          if [ -n "${{ inputs.trivyIgnoreFile }}" ] && [ -f "${{ inputs.trivyIgnoreFile }}" ]; then
+            echo "Using ignore file: ${{ inputs.trivyIgnoreFile }}"
+            ARGS="$ARGS --ignorefile ${{ inputs.trivyIgnoreFile }}"
+          elif [ -n "${{ inputs.trivyIgnoreFile }}" ]; then
+            echo "Ignore file not found: ${{ inputs.trivyIgnoreFile }} (skipping)"
+          fi
+
+          # Only add config file if the file exists
+          if [ -n "${{ inputs.configFile }}" ] && [ -f "${{ inputs.configFile }}" ]; then
+            echo "Using config file: ${{ inputs.configFile }}"
+            ARGS="$ARGS --config ${{ inputs.configFile }}"
+          elif [ -n "${{ inputs.configFile }}" ]; then
+            echo "Config file not found: ${{ inputs.configFile }} (skipping)"
+          fi
+
+          echo "args=$ARGS" >> $GITHUB_OUTPUT
+
+      - name: Run Trivy scan (table output)
+        id: trivy-table
+        continue-on-error: true
+        run: |
+          trivy ${{ inputs.scanType }} \
+            --severity ${{ inputs.severity }} \
+            --vuln-type ${{ inputs.vulnType }} \
+            --scanners ${{ inputs.scanners }} \
+            --format table \
+            --output trivy-results.txt \
+            --exit-code ${{ inputs.exitCode }} \
+            ${{ steps.trivy-args.outputs.args }} \
+            ${{ inputs.scanTarget }}
+
+          echo "exitcode=$?" >> $GITHUB_OUTPUT
+
+      - name: Run Trivy scan (SARIF output)
+        if: inputs.uploadToGitHub
+        continue-on-error: true
+        run: |
+          trivy ${{ inputs.scanType }} \
+            --severity ${{ inputs.severity }} \
+            --vuln-type ${{ inputs.vulnType }} \
+            --scanners ${{ inputs.scanners }} \
+            --format sarif \
+            --output trivy-results.sarif \
+            --exit-code 0 \
+            ${{ steps.trivy-args.outputs.args }} \
+            ${{ inputs.scanTarget }}
+
+      - name: Upload SARIF to GitHub Security tab
+        if: inputs.uploadToGitHub && (success() || failure())
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-${{ inputs.scanType }}
+
+      - name: Generate PR comment body
+        if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComment
+        id: comment-body
+        run: |
+          {
+            echo 'body<<EOF'
+            echo "## 🔍 Trivy Security Scan Results"
+            echo ""
+            echo "**Scan Type:** \`${{ inputs.scanType }}\` | **Target:** \`${{ inputs.scanTarget }}\`"
+            echo "**Severity:** \`${{ inputs.severity }}\` | **Scanners:** \`${{ inputs.scanners }}\`"
+            echo ""
+            if [ "${{ steps.trivy-table.outcome }}" == "success" ]; then
+              echo "### ✅ No vulnerabilities found!"
+              echo ""
+              echo "The security scan completed successfully with no issues detected."
+            else
+              echo "### ⚠️ Vulnerabilities detected"
+              echo ""
+              echo "<details>"
+              echo "<summary>Click to expand scan results</summary>"
+              echo ""
+              echo '```'
+              # Limit output to prevent massive comments (last 500 lines)
+              if [ -f trivy-results.txt ]; then
+                tail -n 500 trivy-results.txt
+              else
+                echo "No results file generated"
+              fi
+              echo '```'
+              echo ""
+              echo "</details>"
+            fi
+            echo ""
+            echo "---"
+            echo "*Scan performed by [Trivy](https://github.com/aquasecurity/trivy) v${{ inputs.trivyVersion }}*"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+      - name: Comment PR with scan results
+        if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComment
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          mode: recreate
+          comment-tag: trivy-scan-results
+          create-if-not-exists: true
+          message: ${{ steps.comment-body.outputs.body }}
+
+      - name: Upload scan results as artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: trivy-scan-results
+          path: |
+            trivy-results.txt
+            trivy-results.sarif
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Set status success
+        if: (success() || inputs.ignoreErrors == true) && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=success" -f "description=security scan passed" \
+            -f "context=${{ env.CHECK_NAME }}"
+
+      - name: Set status failure
+        if: failure() && inputs.ignoreErrors == false && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=failure" -f "description=security vulnerabilities found" \
+            -f "context=${{ env.CHECK_NAME }}"
+
+      - name: Fail if vulnerabilities found
+        if: steps.trivy-table.outcome == 'failure' && inputs.ignoreErrors == false
+        run: exit 1
