@@ -42,6 +42,7 @@ jobs:
     name: Scan
     runs-on: ubuntu-latest
     permissions:
+      actions: read # needed for codeql-action telemetry
       contents: read
       security-events: write # needed for uploading SARIF to GitHub Security tab
       pull-requests: write # needed for PR comments
