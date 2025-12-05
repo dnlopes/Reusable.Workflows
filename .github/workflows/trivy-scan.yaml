@@ -11,11 +11,6 @@ on:
         type: string
         default: "0.58.1"
         description: Trivy version to install
-      uploadToGitHub:
-        required: false
-        type: boolean
-        default: true
-        description: upload scan results (SARIF) to GitHub Security tab
       addPullRequestComment:
         required: false
         type: boolean
@@ -42,9 +37,7 @@ jobs:
     name: Scan
     runs-on: ubuntu-latest
     permissions:
-      actions: read # needed for codeql-action telemetry
       contents: read
-      security-events: write # needed for uploading SARIF to GitHub Security tab
       pull-requests: write # needed for PR comments
       statuses: write # needed for setting the status of the PR
     env:
@@ -102,23 +95,6 @@ jobs:
             ${{ steps.trivy-args.outputs.args }} \
             ${{ inputs.projectDir }}
 
-      - name: Run Trivy scan (SARIF output)
-        if: inputs.uploadToGitHub
-        continue-on-error: true
-        run: |
-          trivy fs \
-            --format sarif \
-            --output trivy-results.sarif \
-            ${{ steps.trivy-args.outputs.args }} \
-            ${{ inputs.projectDir }}
-
-      - name: Upload SARIF to GitHub Security tab
-        if: inputs.uploadToGitHub && (success() || failure())
-        continue-on-error: true # GHAS required for private repos (paid feature)
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: trivy-results.sarif
-          category: trivy
 
       - name: Generate PR comment body
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComment
@@ -170,9 +146,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: trivy-scan-results
-          path: |
-            trivy-results.txt
-            trivy-results.sarif
+          path: trivy-results.txt
           retention-days: 30
           if-no-files-found: ignore
 
