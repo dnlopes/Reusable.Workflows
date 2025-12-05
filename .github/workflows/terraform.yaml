@@ -57,7 +57,7 @@ on:
 
 jobs:
   terraform:
-    name: Run (${{ inputs.terraformAction }})
+    name: ${{ inputs.terraformAction }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
