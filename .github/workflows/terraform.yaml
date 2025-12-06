@@ -79,7 +79,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Set pending status
         if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
@@ -92,7 +92,7 @@ jobs:
             -f "context=${{ env.CHECK_NAME }}"
 
       - name: Checkout reusable-workflows repository
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
         with:
           repository: dnlopes/github-workflows
           path: actions
