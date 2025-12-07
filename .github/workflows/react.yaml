@@ -43,7 +43,7 @@ on:
         description: whether or not to ignore errors
     secrets:
       CODECOV_TOKEN:
-        required: false
+        required: true
 
 env:
   CHECK_NAME: React CI
@@ -112,7 +112,6 @@ jobs:
         run: ${{ inputs.buildCommand }}
 
       - name: Upload coverage to Codecov
-        if: ${{ secrets.CODECOV_TOKEN }} != ''
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5
         with:
           fail_ci_if_error: false
