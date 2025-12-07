@@ -1,0 +1,142 @@
+on:
+  workflow_call:
+    inputs:
+      projectDir:
+        required: false
+        type: string
+        default: .
+        description: path of the React project, relative to the root of the repository
+      nodeVersion:
+        required: false
+        type: string
+        default: "20"
+        description: Node.js version to use
+      packageManager:
+        required: false
+        type: string
+        default: "npm"
+        description: package manager to use (npm, yarn, or pnpm)
+      installCommand:
+        required: false
+        type: string
+        default: ""
+        description: custom command to install dependencies (defaults to package manager install)
+      lintCommand:
+        required: false
+        type: string
+        default: "npm run lint"
+        description: CLI command to run linting
+      testCommand:
+        required: false
+        type: string
+        default: "npm run test -- --coverage --watchAll=false"
+        description: CLI command to run tests
+      buildCommand:
+        required: false
+        type: string
+        default: "npm run build"
+        description: CLI command to build the project
+      ignoreErrors:
+        required: false
+        type: boolean
+        default: false
+        description: whether or not to ignore errors
+    secrets:
+      CODECOV_TOKEN:
+        required: false
+
+env:
+  CHECK_NAME: React CI
+
+jobs:
+  react:
+    name: Build and test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read      # checkout repository
+      pull-requests: read # read PR metadata
+      checks: write       # annotate code in PR
+      statuses: write     # update commit status
+    defaults:
+      run:
+        working-directory: ${{ inputs.projectDir }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+
+      - name: Set status pending
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=pending" -f "description=React checks are running" \
+            -f "context=${{ env.CHECK_NAME }}"
+
+      - name: Setup pnpm
+        if: inputs.packageManager == 'pnpm'
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
+        with:
+          version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
+        with:
+          node-version: ${{ inputs.nodeVersion }}
+          cache: ${{ inputs.packageManager }}
+
+      - name: Install dependencies
+        run: |
+          if [ -n "${{ inputs.installCommand }}" ]; then
+            ${{ inputs.installCommand }}
+          elif [ "${{ inputs.packageManager }}" = "yarn" ]; then
+            yarn install --frozen-lockfile
+          elif [ "${{ inputs.packageManager }}" = "pnpm" ]; then
+            pnpm install --frozen-lockfile
+          else
+            npm ci
+          fi
+
+      - name: Lint
+        if: inputs.lintCommand != ''
+        run: ${{ inputs.lintCommand }}
+
+      - name: Test
+        if: inputs.testCommand != ''
+        run: ${{ inputs.testCommand }}
+
+      - name: Build
+        if: inputs.buildCommand != ''
+        run: ${{ inputs.buildCommand }}
+
+      - name: Upload coverage to Codecov
+        if: secrets.CODECOV_TOKEN != ''
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5
+        with:
+          fail_ci_if_error: false
+          verbose: true
+          directory: ${{ inputs.projectDir }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Set status success
+        if: ${{ (success() || inputs.ignoreErrors == true) && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=success" -f "description=React checks were successful" \
+            -f "context=${{ env.CHECK_NAME }}"
+
+      - name: Set status failure
+        if: ${{ (failure() && inputs.ignoreErrors == false) && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            -f "state=failure" -f "description=React checks failed validations!" \
+            -f "context=${{ env.CHECK_NAME }}"
