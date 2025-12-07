@@ -6,6 +6,11 @@ on:
         type: string
         default: .
         description: path of the React project, relative to the root of the repository
+      dependencyFilePath:
+        required: false
+        type: string
+        default: package-lock.json
+        description: used to specify the path to a dependency file (package-lock.json, yarn.lock, etc)
       nodeVersion:
         required: false
         type: string
@@ -85,12 +90,13 @@ jobs:
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6
         with:
           node-version: ${{ inputs.nodeVersion }}
-          cache: ${{ inputs.packageManager }}
+          cache-dependency-path: ${{ inputs.projectDir }}/${{ inputs.dependencyFilePath }}
 
       - name: Install dependencies
         run: |
-          if [ -n "${{ inputs.installCommand }}" ]; then
-            ${{ inputs.installCommand }}
+          CUSTOM_CMD="${{ inputs.installCommand }}"
+          if [ -n "$CUSTOM_CMD" ]; then
+            $CUSTOM_CMD
           elif [ "${{ inputs.packageManager }}" = "yarn" ]; then
             yarn install --frozen-lockfile
           elif [ "${{ inputs.packageManager }}" = "pnpm" ]; then
