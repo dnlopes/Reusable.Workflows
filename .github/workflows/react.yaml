@@ -94,8 +94,9 @@ jobs:
 
       - name: Install dependencies
         run: |
-          if [ -n "${{ inputs.installCommand }}" ]; then
-            ${{ inputs.installCommand }}
+          CUSTOM_CMD="${{ inputs.installCommand }}"
+          if [ -n "$CUSTOM_CMD" ]; then
+            $CUSTOM_CMD
           elif [ "${{ inputs.packageManager }}" = "yarn" ]; then
             yarn install --frozen-lockfile
           elif [ "${{ inputs.packageManager }}" = "pnpm" ]; then
