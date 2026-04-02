@@ -9,7 +9,7 @@ on:
       trivyVersion:
         required: false
         type: string
-        default: "0.58.1"
+        default: "0.69.3"
         description: Trivy version to install
       addPullRequestComment:
         required: false
@@ -94,7 +94,6 @@ jobs:
             --output trivy-results.txt \
             ${{ steps.trivy-args.outputs.args }} \
             ${{ inputs.projectDir }}
-
 
       - name: Generate PR comment body
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComment

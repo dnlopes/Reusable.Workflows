@@ -30,18 +30,9 @@ runs:
     - name: Install uv
       uses: yezz123/setup-uv@4819cd88f8d0991d99e4d10c85da3e4d22528951 # v4
 
-    - name: Install Poetry
-      uses: abatilo/actions-poetry@0dd19c9498c3dc8728967849d0d2eae428a8a3d8 # v4
-
     - name: Install pre-commit
       shell: bash
       run: pip install pre-commit
-
-    - name: Setup Poetry local environment
-      shell: bash
-      run: |
-        poetry config virtualenvs.create true --local
-        poetry config virtualenvs.in-project true --local
 
     - name: Install OpenTofu
       uses: opentofu/setup-opentofu@9d84900f3238fab8cd84ce47d658d25dd008be2f # v1
@@ -55,10 +46,6 @@ runs:
 
     - name: Install TFLint
       uses: terraform-linters/setup-tflint@4cb9feea73331a35b422df102992a03a44a3bb33 # v6
-
-    - name: Install Trivy
-      shell: bash
-      run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.52.2
 
     - name: Setup Go ${{ matrix.go-version }}
       uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
