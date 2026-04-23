@@ -1,33 +1,30 @@
 on:
   workflow_call:
     inputs:
+      goVersion:
+        required: true
+        type: string
+      buildCommand:
+        required: true
+        type: string
+        description: a CLI command to build the project
+      testCommand:
+        required: true
+        type: string
+        description: a CLI command to unit-test the project
       golangProjectDir:
         required: false
         type: string
         default: .
         description: path of the Golang project, relative to the root of the repository
-      goVersion:
-        required: false
-        type: string
-        default: "1.22"
       ignoreErrors:
         required: false
         type: boolean
         default: false
         description: whether or not to ignore errors
-      buildCommand:
-        required: false
-        type: string
-        default: "make build"
-        description: a CLI command to build the project
-      testCommand:
-        required: false
-        type: string
-        default: "make unit-tests"
-        description: a CLI command to unit-test the project
     secrets:
       CODECOV_TOKEN:
-        required: true
+        required: false
 env:
   CHECK_NAME: Golang CI
 
@@ -49,7 +46,8 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Set status pending
-        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
+        if: github.event_name == 'pull_request' || github.event_name ==
+          'pull_request_target'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -69,19 +67,14 @@ jobs:
         with:
           goVersion: ${{ inputs.goVersion }}
 
-      - name: Dependencies
-        run: go mod download
-        working-directory: ${{ inputs.golangProjectDir }}
-
       - name: Build
         run: ${{ inputs.buildCommand }}
-        working-directory: ${{ inputs.golangProjectDir }}
 
       - name: Test
         run: ${{ inputs.testCommand }}
-        working-directory: ${{ inputs.golangProjectDir }}
 
       - uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
+        if: ${{ secrets.CODECOV_TOKEN != '' }}
         name: Upload coverage to Codecov
         with:
           fail_ci_if_error: false
@@ -89,13 +82,6 @@ jobs:
           directory: ${{ inputs.golangProjectDir }}
         env:
           CODECOV_TOKEN: "${{ secrets.CODECOV_TOKEN }}"
-
-      - name: Golangci-lint
-        uses: golangci/golangci-lint-action@1e7e51e771db61008b38414a730f564565cf7c20 # v9
-        continue-on-error: true
-        with:
-          version: latest
-          working-directory: ${{ inputs.golangProjectDir }}
 
       - name: Set status success
         if: ${{ (success() || inputs.IgnoreErrors == true) && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') }}
