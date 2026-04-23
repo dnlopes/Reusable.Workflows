@@ -4,16 +4,7 @@ on:
       dockerFilePath:
         required: true
         type: string
-      awsRoleArn:
-        required: false
-        description: the IAM role ARN to be assumed when interacting with AWS ECR
-        type: string
-        default: "arn:aws:iam::726291298705:role/GitHub"
-      awsRegion:
-        required: false
-        description: the AWS region to use
-        type: string
-        default: eu-west-1
+        description: path to the Dockerfile, relative to the project directory
       repository:
         required: true
         type: string
@@ -21,11 +12,37 @@ on:
       tag:
         required: true
         type: string
-        description: name of the image tag
+        description: the image tag to apply
+      awsRoleArn:
+        required: false
+        type: string
+        default: ""
+        description: the IAM role ARN to be assumed when interacting with AWS ECR
+      awsRegion:
+        required: false
+        type: string
+        default: eu-west-1
+        description: the AWS region to use
+      projectDir:
+        required: false
+        type: string
+        default: "."
+        description: path of the project, relative to the root of the repository
+      dockerContext:
+        required: false
+        type: string
+        default: "."
+        description: Docker build context path, relative to the project directory
+      createRepository:
+        required: false
+        type: boolean
+        default: true
+        description: create the ECR repository if it does not exist
       pushToECR:
         required: false
         type: boolean
         default: false
+        description: whether to push the image to ECR after building
 
 jobs:
   docker:
@@ -35,11 +52,15 @@ jobs:
       id-token: write # needed for OIDC login in AWS
       contents: read
       pull-requests: read
+    defaults:
+      run:
+        working-directory: ${{ inputs.projectDir }}
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Configure AWS Credentials
+        if: ${{ inputs.pushToECR }}
         uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6
         with:
           role-to-assume: ${{ inputs.awsRoleArn }}
@@ -47,16 +68,30 @@ jobs:
           role-session-name: docker-builder
 
       - name: Login to Amazon ECR
+        if: ${{ inputs.pushToECR }}
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@376925c9d111252e87ae59691e5a442dd100ef6a # v2
 
-      - name: Docker build/push
+      - name: Create ECR repository if not exists
+        if: ${{ inputs.createRepository && inputs.pushToECR }}
         run: |
-          docker build -t $REPOSITORY:$IMAGE_TAG -f ${{ inputs.dockerFilePath }} .
-          if [ ${{ inputs.pushToECR }} == true ]; then
-            docker tag $REPOSITORY:$IMAGE_TAG $REGISTRY/$REPOSITORY:$IMAGE_TAG
-            docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-          fi
+          aws ecr describe-repositories --repository-names "$REPOSITORY" --region "${{ inputs.awsRegion }}" 2>/dev/null || \
+            aws ecr create-repository --repository-name "$REPOSITORY" --region "${{ inputs.awsRegion }}"
+        env:
+          REPOSITORY: ${{ inputs.repository }}
+
+      - name: Docker build
+        run: docker build -t "$REPOSITORY:$IMAGE_TAG" -f "${{ inputs.dockerFilePath }}"
+          "${{ inputs.dockerContext }}"
+        env:
+          REPOSITORY: ${{ inputs.repository }}
+          IMAGE_TAG: ${{ inputs.tag }}
+
+      - name: Push to ECR
+        if: ${{ inputs.pushToECR }}
+        run: |
+          docker tag "$REPOSITORY:$IMAGE_TAG" "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          docker push "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ inputs.repository }}
