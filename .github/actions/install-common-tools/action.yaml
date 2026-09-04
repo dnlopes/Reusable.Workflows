@@ -45,7 +45,7 @@ runs:
         terraform_version: ${{ inputs.terraformVersion }}
 
     - name: Install TFLint
-      uses: terraform-linters/setup-tflint@b480b8fcdaa6f2c577f8e4fa799e89e756bb7c93 # v6
+      uses: terraform-linters/setup-tflint@1cf010d3c7aef302051ccdb68c14c5dc2efa34ef # v6
 
     - name: Setup Go ${{ matrix.go-version }}
       uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
