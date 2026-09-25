@@ -1,31 +1,4 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:best-practices",
-    ":semanticCommitType(chore)",
-    ":semanticCommitScope(deps)",
-    ":automergeRequireAllStatusChecks",
-    ":enableVulnerabilityAlertsWithLabel(vulnerability)",
-    ":labels(renovate, dependencies)",
-    ":rebaseStalePrs",
-    ":timezone(UTC)",
-    "schedule:monthly"
-  ],
-  "reviewersFromCodeOwners": true,
-  "automergeType": "pr",
-  "automergeStrategy": "squash",
-  "packageRules": [
-    {
-      "groupName": "all non-major dependencies",
-      "groupSlug": "all-non-major",
-      "matchUpdateTypes": ["minor", "patch", "digest", "pin", "pinDigest"],
-      "automerge": true
-    },
-    {
-      "groupName": "all major dependencies",
-      "groupSlug": "all-major",
-      "matchUpdateTypes": ["major"],
-      "automerge": false
-    }
-  ]
+  "extends": ["github>dnlopes/Reusable.Workflows:renovate-preset"]
 }
