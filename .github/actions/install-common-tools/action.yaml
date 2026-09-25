@@ -11,9 +11,13 @@ inputs:
     required: false
     default: "1.7.3"
   goVersion:
-    description: Terraform version to install
+    description: Go version to install
     required: false
     default: "1.22"
+  goVersionFile:
+    description: File that sets the Go version to install, such as go.mod. Takes precedence over goVersion.
+    required: false
+    default: ""
   pythonVersion:
     description: Python version to install
     required: false
@@ -50,4 +54,5 @@ runs:
     - name: Setup Go ${{ matrix.go-version }}
       uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
       with:
-        go-version: ${{ inputs.goVersion }}
+        go-version: ${{ inputs.goVersionFile == '' && inputs.goVersion || '' }}
+        go-version-file: ${{ inputs.goVersionFile }}
