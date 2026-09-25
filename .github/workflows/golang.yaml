@@ -2,8 +2,15 @@ on:
   workflow_call:
     inputs:
       goVersion:
-        required: true
+        required: false
         type: string
+        default: ""
+        description: Go version to install. If empty, the version comes from goVersionFile.
+      goVersionFile:
+        required: false
+        type: string
+        default: ""
+        description: file that sets the Go version, relative to the root of the repository. Default is go.mod in golangProjectDir
       buildCommand:
         required: true
         type: string
@@ -73,6 +80,7 @@ jobs:
         uses: ./actions/.github/actions/install-common-tools
         with:
           goVersion: ${{ inputs.goVersion }}
+          goVersionFile: ${{ inputs.goVersion == '' && (inputs.goVersionFile != '' && inputs.goVersionFile || format('{0}/go.mod', inputs.golangProjectDir)) || '' }}
 
       - name: Build
         run: ${{ inputs.buildCommand }}
