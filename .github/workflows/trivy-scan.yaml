@@ -83,7 +83,7 @@ jobs:
             echo "Config file not found: ${{ inputs.configFile }} (skipping)"
           fi
 
-          echo "args=$ARGS" >> $GITHUB_OUTPUT
+          echo "args=$ARGS" >> "$GITHUB_OUTPUT"
 
       - name: Run Trivy scan (table output)
         id: trivy-table
@@ -128,7 +128,7 @@ jobs:
             echo "---"
             echo "*Scan performed by [Trivy](https://github.com/aquasecurity/trivy) v${{ inputs.trivyVersion }}*"
             echo 'EOF'
-          } >> $GITHUB_OUTPUT
+          } >> "$GITHUB_OUTPUT"
 
       - name: Comment PR with scan results
         if: always() && (github.event_name == 'pull_request' || github.event_name == 'pull_request_target') && inputs.addPullRequestComment

@@ -119,9 +119,9 @@ jobs:
         id: init
         run: |
           if [ ${{ inputs.runPlanOrApply }} == true ]; then
-            ${{ inputs.binary }} init -upgrade | tee ${GITHUB_WORKSPACE}/init.out
+            ${{ inputs.binary }} init -upgrade | tee "${GITHUB_WORKSPACE}/init.out"
           else
-            ${{ inputs.binary }} init -backend=false | tee ${GITHUB_WORKSPACE}/init.out
+            ${{ inputs.binary }} init -backend=false | tee "${GITHUB_WORKSPACE}/init.out"
           fi
 
       - name: Validate
