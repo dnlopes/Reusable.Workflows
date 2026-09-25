@@ -38,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Set status pending
         if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
@@ -51,7 +51,7 @@ jobs:
             -f "context=${{ env.CHECK_NAME }}"
 
       - name: Checkout reusable-workflows repository
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: dnlopes/github-workflows
           path: actions
@@ -69,7 +69,7 @@ jobs:
         if: ${{ inputs.testsCommand != '' }}
         run: ${{ inputs.testsCommand }}
 
-      - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
+      - uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7
         name: Upload coverage to Codecov
         with:
           fail_ci_if_error: false
