@@ -1,7 +1,7 @@
 ---
 scope:
   - ".releaserc.yaml"
-  - "renovate.json"
+  - ".github/dependabot.yml"
   - ".github/PULL_REQUEST_TEMPLATE.md"
   - ".github/labeler-config.yaml"
   - ".github/CODEOWNERS"
@@ -64,11 +64,11 @@ Releases are automated via semantic-release on push to main:
 
 ## Dependency Updates
 
-Renovate bot manages dependency updates:
-- Runs on weekends
-- Auto-merges minor and patch updates
-- Groups related updates together
-- Pins all actions by SHA
+Dependabot manages dependency updates:
+- Runs monthly
+- Groups minor and patch updates into one PR, and major updates into another
+- Keeps SHA-pinned actions and their version comments up to date
+- Merges a PR after a code owner approves it or comments `LGTM`, through `dependabot-merge.yaml`
 
 ## Common Tasks
 

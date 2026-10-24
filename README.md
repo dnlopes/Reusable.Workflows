@@ -46,6 +46,7 @@ jobs:
 | `trivy-scan.yaml` | Security vulnerability scanning | None |
 | `semantic-pr.yaml` | Enforce semantic PR titles | None |
 | `pre-commit-hooks.yaml` | Run pre-commit hooks | None |
+| `dependabot-merge.yaml` | Merge Dependabot PRs after a code owner approves | `DEPENDABOT_MERGE_TOKEN` |
 
 ## Usage Examples
 
@@ -110,6 +111,36 @@ jobs:
     uses: dnlopes/github-workflows/.github/workflows/semantic-pr.yaml@v1
 ```
 
+### Dependabot Merge
+
+A code owner approves a Dependabot PR, or comments `LGTM` on it, and the workflow enables squash auto-merge. The workflow also does two follow-up tasks:
+
+- When a PR falls behind the default branch, it asks Dependabot to rebase the PR.
+- When the rebase dismisses the approval, it approves again, but only if the changes match the approved commit.
+
+```yaml
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+  pull_request:
+    types: [synchronize]
+  push:
+    branches:
+      - main
+
+permissions: {}
+
+jobs:
+  merge:
+    uses: dnlopes/Reusable.Workflows/.github/workflows/dependabot-merge.yaml@v1
+    secrets:
+      DEPENDABOT_MERGE_TOKEN: ${{ secrets.DEPENDABOT_MERGE_TOKEN }}
+```
+
+`DEPENDABOT_MERGE_TOKEN` is a fine-grained personal access token of a code owner. It needs read and write access to **Contents**, **Pull requests**, and **Workflows**. Store it as an Actions secret and as a Dependabot secret: runs that Dependabot triggers read only Dependabot secrets.
+
 ## Version Pinning
 
 Reference workflows using semantic versioning:
@@ -122,6 +153,7 @@ Reference workflows using semantic versioning:
 
 - **All workflows**: GitHub Actions enabled in your repository
 - **Coverage workflows**: `CODECOV_TOKEN` secret configured
+- **Dependabot merge**: `DEPENDABOT_MERGE_TOKEN` stored as an Actions secret and a Dependabot secret, and auto-merge allowed in the repository settings
 - **AWS workflows**: OIDC trust relationship between GitHub and AWS
 - **Terraform**: IAM role ARN and tfvars file in repository
 
