@@ -57,8 +57,12 @@ jobs:
           }
 
           rebase_if_behind() {
-            local behind
-            behind=$(gh api "repos/$REPO/compare/$DEFAULT_BRANCH...$2" --jq .behind_by)
+            local state head_sha behind
+            read -r state head_sha < <(gh pr view "$1" -R "$REPO" --json state,headRefOid --jq '"\(.state) \(.headRefOid)"')
+            if [[ "$state" != "OPEN" ]]; then
+              return 0
+            fi
+            behind=$(gh api "repos/$REPO/compare/$DEFAULT_BRANCH...$head_sha" --jq .behind_by)
             if (( behind > 0 )); then
               gh pr comment "$1" -R "$REPO" --body "@dependabot rebase"
               echo "Asked Dependabot to rebase PR #$1"
@@ -88,7 +92,7 @@ jobs:
                 exit 0
               fi
               gh pr merge "$PR_NUMBER" -R "$REPO" --auto --squash
-              rebase_if_behind "$PR_NUMBER" "$(gh pr view "$PR_NUMBER" -R "$REPO" --json headRefOid --jq .headRefOid)"
+              rebase_if_behind "$PR_NUMBER"
               ;;
 
             pull_request)
@@ -115,10 +119,10 @@ jobs:
               ;;
 
             push)
-              gh pr list -R "$REPO" --author app/dependabot --state open --json number,headRefOid,autoMergeRequest \
-                --jq '.[] | select(.autoMergeRequest != null) | "\(.number) \(.headRefOid)"' |
-                while read -r number sha; do
-                  rebase_if_behind "$number" "$sha"
+              gh pr list -R "$REPO" --author app/dependabot --state open --json number,autoMergeRequest \
+                --jq '.[] | select(.autoMergeRequest != null) | .number' |
+                while read -r number; do
+                  rebase_if_behind "$number"
                 done
               ;;
           esac
