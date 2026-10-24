@@ -69,6 +69,22 @@ jobs:
             fi
           }
 
+          request_merge() {
+            local attempt output
+            for attempt in 1 2 3 4 5; do
+              if output=$(gh pr merge "$1" -R "$REPO" --auto --squash 2>&1); then
+                echo "$output"
+                return 0
+              fi
+              echo "$output" >&2
+              # gh merges at once when checks already passed, so a merge of another PR in between rejects it.
+              if ! grep -q "Base branch was modified" <<<"$output" || (( attempt == 5 )); then
+                return 1
+              fi
+              sleep $(( attempt * 5 ))
+            done
+          }
+
           case "$EVENT" in
             issue_comment)
               if [[ "$(tr -d '[:space:]' <<<"$COMMENT_BODY")" != "LGTM" ]]; then
@@ -91,7 +107,7 @@ jobs:
               if ! is_code_owner "$REVIEW_AUTHOR"; then
                 exit 0
               fi
-              gh pr merge "$PR_NUMBER" -R "$REPO" --auto --squash
+              request_merge "$PR_NUMBER"
               rebase_if_behind "$PR_NUMBER"
               ;;
 
